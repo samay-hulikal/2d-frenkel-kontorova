@@ -15,3 +15,7 @@ src/ functions/classes · scripts/ main code · tests/ tests · sample-data/ inp
 - Always ask when something is ambiguous.
 - Current state lives in HANDOFF.md.
 - Keep CLAUDE.md and HANDOFF.md succinct.
+- Keep requirements.txt up to date with required packages.
+- Run code inside a virtual environment.
+- Use #WARN: comments around pieces that are subtle, involve the model's math, describes the optimization process, or anything that could use my attention as a check.
+- A #WARN: still in the code = not yet verified by me. Notify me of any remaining ones (e.g. at pickup) and keep the list in HANDOFF.md current.
