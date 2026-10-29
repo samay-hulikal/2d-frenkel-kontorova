@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "Bash(git status)", "Bash(git diff:*)", "Bash(git log:*)",
+      "Bash(git branch:*)", "Bash(git checkout -b:*)", "Bash(git add:*)",
+      "Bash(ls:*)"
+    ],
+    "ask": [
+      "Read(./sample-data/**)", "Read(./outputs/**)",
+      "Bash(git commit:*)", "Bash(git push:*)", "Bash(git merge:*)",
+      "Bash(pip install:*)", "Bash(npm install:*)"
+    ],
+    "deny": [
+      "Read(./.env)", "Read(~/.ssh/**)",
+      "Bash(rm -rf:*)", "Bash(git push --force:*)", "Bash(git reset --hard:*)",
+      "Bash(curl:*)", "Bash(wget:*)"
+    ]
+  },
+  "sandbox": { "enabled": true }
+}

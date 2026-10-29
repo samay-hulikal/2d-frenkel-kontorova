@@ -1,0 +1,17 @@
+# Project: 2D Frenkel-Kontorova model and its modifications for a hexagonal lattice
+## Purpose
+Simulating a 2D Frenkel-Kontorova model and its variations for a hexagonal lattice.
+## Layout
+src/ functions/classes · scripts/ main code · tests/ tests · sample-data/ inputs · outputs/ results
+## Commands
+- Run tests: .venv/bin/python -m pytest
+- Run main: .venv/bin/python -m scripts.main
+## Conventions
+- None yet
+## Working rules
+- Work on main; small commits with clear messages.
+- Explain the plan before editing; verify by running tests.
+- Don't open files in sample-data/ or outputs/ (requires my approval); write code that prints short summaries instead.
+- Always ask when something is ambiguous.
+- Current state lives in HANDOFF.md.
+- Keep CLAUDE.md and HANDOFF.md succinct.

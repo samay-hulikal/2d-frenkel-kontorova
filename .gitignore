@@ -1,0 +1,10 @@
+.claude/settings.local.json
+.claude/worktrees/
+sample-data/*
+outputs/*
+!sample-data/.gitkeep
+!outputs/.gitkeep
+.env
+.venv/
+__pycache__/
+.DS_Store
