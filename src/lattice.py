@@ -1,39 +1,65 @@
-"""Finite triangular-lattice patches (particles = hexagonal-cell centres). No periodic boundaries."""
-
 import numpy as np
 from scipy.spatial import cKDTree
 
-
 def triangular_patch(nx, ny, a=1.0):
-    """Rectangular nx x ny patch of a triangular lattice with spacing a.
-
-    Row j has y = j * a*sqrt(3)/2; odd rows are shifted by a/2 in x.
-    Particle index = j * nx + i. Returns positions of shape (nx*ny, 2).
     """
-    i, j = np.meshgrid(np.arange(nx), np.arange(ny))
-    # WARN: lattice geometry. Row spacing a*sqrt(3)/2 + half-shift on odd rows gives
-    # equilateral triangles of side a; left/right edges are therefore zig-zag.
+    Rectangular nx x ny patch of a triangular lattice with spacing a, representing the centers of a hexagonal lattice.
+
+    Parameters
+    ----------
+    nx: Number of centers along x
+    ny: Number of centers along y
+    a: Spacing between the centers of the hexagons
+
+    Returns
+    ----------
+    pos: An array such that pos[j*nx + i] are the (x, y) coordinates of particle k = j*nx + i
+    """
+    # Index i goes along x (columns) and j goes along y (rows)
+    i, j = np.meshgrid(np.arange(nx), np.arange(ny)) # Creates an integer grid such that (i, j) gives the integer indices of the particles
+
+    #INFO: Converting the integer indices to (x, y) positions
     x = a * (i + 0.5 * (j % 2))
     y = a * (np.sqrt(3) / 2) * j
-    # WARN: end
-    return np.column_stack([x.ravel(), y.ravel()]).astype(float)
+
+    #INFO: pos[k] is a length-2 array [x_k, y_k], the position of particle k, where k = j*nx + i; pos[k, 0] is x_k and pos[k, 1] is y_k
+    pos = np.column_stack([x.ravel(), y.ravel()]).astype(float) # ravel() flattens the grids
+    return pos
 
 
 def bonds_nn(pos, a=1.0, tol=1e-6):
-    """Nearest-neighbour bonds: all pairs closer than a*(1+tol). Returns (M, 2) int array, i < j."""
-    # WARN: bonds are found by distance, so call this on the *undeformed* lattice only.
-    # The next-nearest distance is sqrt(3)*a, so tol must stay well below 0.73.
-    pairs = cKDTree(pos).query_pairs(a * (1 + tol), output_type="ndarray")
-    # WARN: end
-    return pairs[np.lexsort((pairs[:, 1], pairs[:, 0]))]
+    """
+    Creates the nearest-neighbour bonds; run ONLY on an UNDEFORMED lattice.
 
+    Parameters
+    ----------
+    pos: Array such that pos[k] gives the (x, y) coordinates of particle k = i + j*nx
+    a: Distance to check for neighbors
+    tol: Tolerance within which neighbors must be considered
+
+    Returns
+    ----------
+    bonds: bonds[l] outputs [p, q] indicating that particles p and q are connected by a bond
+    """
+    #INFO: Works only on an UNDEFORMED lattice
+    pairs = cKDTree(pos).query_pairs(a * (1 + tol), output_type="ndarray") # asks the tree for all pairs (k, l) with |pos[k] − pos[l]| ≤ r, where r = a*(1+tol)
+
+    bonds = pairs[np.lexsort((pairs[:, 1], pairs[:, 0]))] # bonds[l] returns [p, q] telling you that particles p and q are connected by bond number l
+    return bonds
 
 def edge_mask(nx, ny):
-    """Boolean (nx*ny,) mask, True for the outer ring of the patch."""
-    i, j = np.meshgrid(np.arange(nx), np.arange(ny))
-    return ((i == 0) | (i == nx - 1) | (j == 0) | (j == ny - 1)).ravel()
+    """Identifying the edge vertices of the lattice.
 
+    Parameters
+    ----------
+    nx: Number of particles along x
+    ny: Number of particles along y
 
-def coordination(bonds, n):
-    """Number of bonds per particle, shape (n,)."""
-    return np.bincount(bonds.ravel(), minlength=n)
+    Returns
+    ----------
+    mask: boolean array, mask[k] is True if particle k = j*nx + i is on the outer ring
+    """
+    i, j = np.meshgrid(np.arange(nx), np.arange(ny)) # Creates an integer grid such that (i, j) gives the integer indices of the particles
+
+    mask = ((i == 0) | (i == nx - 1) | (j == 0) | (j == ny - 1)).ravel() # mask[k] is true if particle k = i + j*nx is on the boundary and false otherwise
+    return mask

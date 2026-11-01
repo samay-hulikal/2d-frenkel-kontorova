@@ -1,6 +1,22 @@
 import numpy as np
 
-from src.lattice import bonds_nn, coordination, edge_mask, triangular_patch
+from src.lattice import bonds_nn, edge_mask, triangular_patch
+
+
+def coordination(bonds, n):
+    """
+    Number of bonds per particle (coordination number z).
+
+    Parameters
+    ----------
+    bonds: Array such that bonds[l] = [p, q] means particles p and q are connected by bond number l
+    n: Number of particles
+
+    Returns
+    ----------
+    z: Array of shape (n,) such that z[k] is the number of bonds attached to particle k
+    """
+    return np.bincount(bonds.ravel(), minlength=n)
 
 
 def test_patch_size_and_spacing():

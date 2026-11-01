@@ -7,7 +7,7 @@ src/ functions/classes · scripts/ main code · tests/ tests · sample-data/ inp
 - Run tests: .venv/bin/python -m pytest
 - Run main: .venv/bin/python -m scripts.main
 ## Conventions
-- None yet
+- Docstrings: one-line summary, then `Parameters` and `Returns` sections (dashed underline), one `name: description` line per item (see `src/lattice.py`).
 ## Working rules
 - Work on main; small commits with clear messages.
 - Explain the plan before editing; verify by running tests.
