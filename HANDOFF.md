@@ -8,9 +8,9 @@ Basic 2D FK sim + first parameter sweep. 26 tests passing.
 - `src/stress.py` (committed, NOT yet user-reviewed; WARNs open): `voronoi_areas` (NaN if unbounded), `isotropic_stress`.
 - `src/plotting.py` (committed, NOT yet user-reviewed; WARN open, user: not critical for now): `central_window`, `in_window`, `substrate_cells`, `particle_cells`, `plot_state` (layout approved by user).
 - `scripts/main.py`: constants at top (A = √3, S, FIX_EDGES, START_SPACING, ...); `run(...)` builds → relaxes → σ_iso → summary dict (shared with sweep); `main()` prints and saves `outputs/state_s<S>_V0<V0>_<edges>_start<x>a.png`. Defaults S = 0.75, V0 = 0.1 (placeholder), free edges, start at a.
-- `scripts/sweep.py`: `run_sweep(output_dir, start_at_minima)`; V0 = 0.05, 0.30, …, 2.05 × s = 0.5, 0.75, 1, 1.5, 2, 3 (54 runs, ~17 s); free edges; as a script starts at a → `outputs/sweep/` (`V0_<V0>_s_<s>.png` + `summary.csv`).
+- `scripts/sweep.py`: `run_sweep(output_dir, start_at_minima)`; V0 = 0.005, 0.255, …, 2.005 (shifted from 0.05… by user) × s = 0.5, 0.75, 1, 1.5, 2, 3 (54 runs, ~17 s); free edges; as a script starts at a → `outputs/sweep/` (`V0_<V0>_s_<s>.png` + `summary.csv`).
 - `scripts/sweep_2.py`: same sweep, start in the minima (spacing a_s) → `outputs/sweep_2/`. Window = central quarter of the starting patch, so always 30×30 particle cells (user's choice); its physical size scales with a_s.
-- Both sweeps: all 54 runs converged. Sweep 2 locks to the substrate (uniform σ_iso = √3 k (a_s − a)/a_s in window) once V0 is large enough: s = 0.5, 0.75, 1.5 from V0 ≈ 0.3; s = 2 from 0.8; s = 3 from 1.8. Which start gives the lower final energy depends on (V0, s): start at a_s wins for s = 0.75, 1.5 (V0 ≥ 0.55) and for most s at V0 ≥ 1.8; start at a wins for s = 3 and most of s = 0.5, 2.
+- Both sweeps (rerun with shifted V0; old outputs replaced): all 54 runs converged. At V0 = 0.005 the lattice floats (E ≈ 12 ≈ N × mean substrate energy) and both starts agree, except sweep 2 at s = 3 (E = 36, σ_iso from −0.65 to 0.35; not yet understood). Sweep 2 locks to the substrate (uniform σ_iso = √3 k (a_s − a)/a_s in window) from V0 ≈ 0.255 for s = 0.5, 0.75, 1.5; 0.755 for s = 2; 1.755 for s = 3. Lower final energy: start at a_s for s = 0.75 (V0 ≥ 0.255), s = 1.5 (V0 ≥ 0.505), s = 0.5 and 2 at V0 ≈ 2; start at a for s = 3 and most of s = 0.5, 2.
 - `coordination` is a test-only helper in `tests/test_lattice.py`.
 ## Recent decisions
 - Particles = hexagonal-cell centers on a rectangular triangular-lattice patch, 6 NN harmonic springs — standard 2D FK geometry.
@@ -44,3 +44,5 @@ Basic 2D FK sim + first parameter sweep. 26 tests passing.
 - Boundary conditions: free vs fixed switchable; periodic is a possible later option.
 - L-BFGS finds a local minimum; result depends on the start (spacing, registry of the patch on the substrate).
 - s = 1 with start at a is trivially E = 0 (patch already in the minima, nothing moves).
+- Sweep 2, s = 3: patch starts 73% stretched and shrinks a lot; the window is fixed from the starting patch, so it may reach the shrunken patch's edges. Possible cause of the odd V0 = 0.005 result.
+- Small rotations (Novaco–McTague) are allowed with free edges but unlikely from an aligned start; could measure the window lattice's angle or start rotated.
