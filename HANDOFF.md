@@ -8,7 +8,9 @@ Basic 2D FK sim + first parameter sweep. 26 tests passing.
 - `src/stress.py` (committed, NOT yet user-reviewed; WARNs open): `voronoi_areas` (NaN if unbounded), `isotropic_stress`.
 - `src/plotting.py` (committed, NOT yet user-reviewed; WARN open, user: not critical for now): `central_window`, `in_window`, `substrate_cells`, `particle_cells`, `plot_state` (layout approved by user).
 - `scripts/main.py`: constants at top (A = √3, S, FIX_EDGES, START_SPACING, ...); `run(...)` builds → relaxes → σ_iso → summary dict (shared with sweep); `main()` prints and saves `outputs/state_s<S>_V0<V0>_<edges>_start<x>a.png`. Defaults S = 0.75, V0 = 0.1 (placeholder), free edges, start at a.
-- `scripts/sweep.py`: V0 = 0.05, 0.30, …, 2.05 × s = 0.5, 0.75, 1, 1.5, 2, 3 (54 runs, ~17 s); free edges, start at a; figures `V0_<V0>_s_<s>.png` + `summary.csv` in `outputs/sweep/`. First run: all converged.
+- `scripts/sweep.py`: `run_sweep(output_dir, start_at_minima)`; V0 = 0.05, 0.30, …, 2.05 × s = 0.5, 0.75, 1, 1.5, 2, 3 (54 runs, ~17 s); free edges; as a script starts at a → `outputs/sweep/` (`V0_<V0>_s_<s>.png` + `summary.csv`).
+- `scripts/sweep_2.py`: same sweep, start in the minima (spacing a_s) → `outputs/sweep_2/`. Window = central quarter of the starting patch, so always 30×30 particle cells (user's choice); its physical size scales with a_s.
+- Both sweeps: all 54 runs converged. Sweep 2 locks to the substrate (uniform σ_iso = √3 k (a_s − a)/a_s in window) once V0 is large enough: s = 0.5, 0.75, 1.5 from V0 ≈ 0.3; s = 2 from 0.8; s = 3 from 1.8. Which start gives the lower final energy depends on (V0, s): start at a_s wins for s = 0.75, 1.5 (V0 ≥ 0.55) and for most s at V0 ≥ 1.8; start at a wins for s = 3 and most of s = 0.5, 2.
 - `coordination` is a test-only helper in `tests/test_lattice.py`.
 ## Recent decisions
 - Particles = hexagonal-cell centers on a rectangular triangular-lattice patch, 6 NN harmonic springs — standard 2D FK geometry.
@@ -30,7 +32,7 @@ Basic 2D FK sim + first parameter sweep. 26 tests passing.
 - Voronoi tessellation of centers to recover cells (also gives geometric neighbor counts for defects).
 - Docstring style (Parameters/Returns) recorded in CLAUDE.md Conventions.
 ## Next steps
-1. User looks at the sweep figures/summary in `outputs/sweep/`.
+1. User looks at the sweep figures/summaries in `outputs/sweep/` and `outputs/sweep_2/`.
 2. User reviews `src/stress.py` #WARNs (plotting #WARN can wait).
 3. User picks V0 from the equations / paper.
 4. Later: overdamped dynamics + driving, observables.
