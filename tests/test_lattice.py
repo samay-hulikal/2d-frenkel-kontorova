@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.lattice import bonds_nn, edge_mask, triangular_patch
+from src.lattice import bonds_nn, edge_mask, mobile_mask, triangular_patch
 
 
 def coordination(bonds, n):
@@ -42,3 +42,10 @@ def test_edge_mask_is_outer_ring():
     assert edge[0].all() and edge[-1].all() and edge[:, 0].all() and edge[:, -1].all()
     assert not edge[1:-1, 1:-1].any()
     assert edge.sum() == 2 * nx + 2 * (ny - 2)
+
+
+def test_mobile_mask_fixed_and_free_edges():
+    nx, ny = 6, 5
+    assert np.array_equal(mobile_mask(nx, ny, fix_edges=True), ~edge_mask(nx, ny))
+    free = mobile_mask(nx, ny, fix_edges=False)
+    assert free.shape == (nx * ny,) and free.all()

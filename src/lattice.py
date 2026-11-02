@@ -1,3 +1,6 @@
+#INFO: Particles representing the centers of the hexagons connected by springs. The bees want the centers to be at certain distance because they want hexagons of a certain size.
+
+
 import numpy as np
 from scipy.spatial import cKDTree
 
@@ -63,3 +66,25 @@ def edge_mask(nx, ny):
 
     mask = ((i == 0) | (i == nx - 1) | (j == 0) | (j == ny - 1)).ravel() # mask[k] is true if particle k = i + j*nx is on the boundary and false otherwise
     return mask
+
+
+def mobile_mask(nx, ny, fix_edges=True):
+    """
+    Identifying the particles that are allowed to move.
+
+    Parameters
+    ----------
+    nx: Number of particles along x
+    ny: Number of particles along y
+    fix_edges: If True, the outer ring is pinned; if False, every particle moves
+
+    Returns
+    ----------
+    mobile: Boolean array, mobile[k] is True if particle k = j*nx + i is allowed to move
+    """
+    if fix_edges:
+        mobile = ~edge_mask(nx, ny) # Interior particles move, the outer ring is pinned
+        return mobile
+
+    mobile = np.ones(nx * ny, dtype=bool) # all particles move
+    return mobile
