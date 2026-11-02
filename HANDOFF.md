@@ -1,9 +1,10 @@
 # Handoff
 ## Current state
-Basic 2D FK sim in progress. 13 tests passing.
+Basic 2D FK sim in progress. 17 tests passing.
 - `src/lattice.py` (user-reviewed): `triangular_patch`, `bonds_nn`, `edge_mask`, `mobile_mask(nx, ny, fix_edges)`.
 - `src/substrate.py` (user-reviewed): `reciprocal_vectors`, `substrate_energy`, `substrate_force`.
 - `src/springs.py` (user-reviewed): `bond_vectors`, `spring_energy` (total `V_int`), `spring_force` (`F_int`, built from the force on p, the tail of bond p→q).
+- `src/relax.py` (user-reviewed): `total_energy`, `total_force`, `relax` (L-BFGS-B on mobile particles, returns `pos, info`).
 - `coordination` is a test-only helper in `tests/test_lattice.py`.
 ## Recent decisions
 - Particles = hexagonal-cell centers on a rectangular triangular-lattice patch, 6 NN harmonic springs — standard 2D FK geometry.
@@ -20,11 +21,11 @@ Basic 2D FK sim in progress. 13 tests passing.
 - Voronoi tessellation of centers to recover cells (also gives geometric neighbor counts for defects).
 - Docstring style (Parameters/Returns) recorded in CLAUDE.md Conventions.
 ## Next steps
-1. `src/relax.py`: total energy/force, `relax()` via L-BFGS on mobile particles, stop on max force.
-2. `scripts/main.py`: parameters, build → relax → print summary, save plot to outputs/.
-3. Later: overdamped dynamics + driving, tessellation, observables.
-4. Possible test: `spring_force` vs finite-difference −∇V_int (checked by hand, matches to 1e-10; not in suite).
+1. `scripts/main.py`: parameters (incl. `FIX_EDGES`), build → relax → print summary, save plot to outputs/.
+2. Later: overdamped dynamics + driving, tessellation, observables, central-region mask.
 ## Unverified #WARN: comments
 - (none)
 ## Open questions
-- (none)
+- Boundary conditions: user unsure; keep fixed (pins mean spacing at a_s, so the commensurate start doesn't move) vs free switchable. Periodic is a possible later option.
+- Units: sim is not dimensionless (user note in relax.py); k and V0 must be chosen with care.
+- L-BFGS finds a local minimum: starting from the commensurate state, misfit dislocations don't appear on their own.

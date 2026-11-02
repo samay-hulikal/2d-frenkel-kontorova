@@ -85,5 +85,5 @@ def spring_force(pos, bonds, k=1.0, a=1.0):
     np.add.at(Fx, bonds[:, 1], -fx) # equal and opposite forces on q
     np.add.at(Fy, bonds[:, 1], -fy)
 
-    F_int = np.column_stack([Fx, Fy]) # F[k] = (Fx_k, Fy_k)
+    F_int = np.column_stack([Fx, Fy]) # F_int[k] = (F_intx_k, F_inty_k)
     return F_int
