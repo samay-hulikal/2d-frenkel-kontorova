@@ -5,9 +5,9 @@ Basic 2D FK sim in progress. 26 tests passing.
 - `src/substrate.py` (user-reviewed): `reciprocal_vectors`, `substrate_energy`, `substrate_force`.
 - `src/springs.py` (user-reviewed): `bond_vectors`, `spring_energy` (total `V_int`), `spring_force` (`F_int`, built from the force on p, the tail of bond p→q).
 - `src/relax.py` (user-reviewed): `total_energy`, `total_force`, `relax` (L-BFGS-B on mobile particles, returns `pos, info`).
-- `src/stress.py` (uncommitted, NOT yet user-reviewed; WARNs open): `voronoi_areas` (NaN if unbounded), `isotropic_stress`.
-- `src/plotting.py` (uncommitted, NOT yet user-reviewed; WARN open): `central_window`, `in_window`, `substrate_cells`, `particle_cells`, `plot_state` (layout approved by user).
-- Uncommitted: relax default f_tol 1e-8 → 1e-6.
+- `src/stress.py` (committed, NOT yet user-reviewed; WARNs open): `voronoi_areas` (NaN if unbounded), `isotropic_stress`.
+- `src/plotting.py` (committed, NOT yet user-reviewed; WARN open, user: not critical for now): `central_window`, `in_window`, `substrate_cells`, `particle_cells`, `plot_state` (layout approved by user).
+- `scripts/main.py`: constants at top (incl. `FIX_EDGES`, `START_SPACING`), build → relax → σ_iso → printed summary → `outputs/state_a<A>_V0<V0>_<edges>_start<s>.png`. V0 = 0.1 is a placeholder.
 - `coordination` is a test-only helper in `tests/test_lattice.py`.
 ## Recent decisions
 - Particles = hexagonal-cell centers on a rectangular triangular-lattice patch, 6 NN harmonic springs — standard 2D FK geometry.
@@ -25,8 +25,8 @@ Basic 2D FK sim in progress. 26 tests passing.
 - Voronoi tessellation of centers to recover cells (also gives geometric neighbor counts for defects).
 - Docstring style (Parameters/Returns) recorded in CLAUDE.md Conventions.
 ## Next steps
-1. User reviews `src/stress.py` and `src/plotting.py`; then commit.
-2. `scripts/main.py`: parameters (incl. `FIX_EDGES`), build → relax → stress → print summary → plot to outputs/.
+1. User reviews `src/stress.py` #WARNs (plotting #WARN can wait).
+2. User picks V0 (and start spacing) from the equations.
 3. Later: overdamped dynamics + driving, observables.
 ## Unverified #WARN: comments
 - `src/stress.py` `isotropic_stress`: virial stress σ = (1/A) Σ k dl |d| d̂⊗d̂ (springs only), positive = expanded.
