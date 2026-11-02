@@ -15,22 +15,23 @@ def bond_vectors(pos, bonds):
 
     Returns
     ----------
-    dx: Array of shape (M,), x component of r_q - r_p for every bond l
-    dy: Array of shape (M,), y component of r_q - r_p for every bond l
-    length: Array of shape (M,), |r_q - r_p| for every bond l
+    dx: Array of shape (M,), x component of r_q - r_p for every bond l; dx[l] gives the x-component of the vector for bond l
+    dy: Array of shape (M,), y component of r_q - r_p for every bond l; dy[l] gives the y-component of the vector for bond l
+    length: Array of shape (M,), |r_q - r_p| for every bond l; length[l] gives the length of bond l
     """
     p = bonds[:, 0] # first particle of every bond, shape (M,)
     q = bonds[:, 1] # second particle of every bond, shape (M,)
 
-    dx = pos[q, 0] - pos[p, 0] # x component of the bond vector, pointing from p to q
-    dy = pos[q, 1] - pos[p, 1] # y component of the bond vector, pointing from p to q
+    #INFO: Note the direction of the bond vector-- it points from p to q
+    dx = pos[q, 0] - pos[p, 0] # x component of the bond vector
+    dy = pos[q, 1] - pos[p, 1] # y component of the bond vector
     length = np.sqrt(dx**2 + dy**2)
     return dx, dy, length
 
 
 def spring_energy(pos, bonds, k=1.0, a=1.0):
     """
-    Total spring energy, E = (k / 2) sum_bonds (|r_q - r_p| - a)^2.
+    Total spring energy, V_int = (k / 2) sum_bonds (|r_q - r_p| - a)^2.
 
     Parameters
     ----------
@@ -41,17 +42,20 @@ def spring_energy(pos, bonds, k=1.0, a=1.0):
 
     Returns
     ----------
-    E: Total spring energy (a single number)
+    V_int: Total spring energy (a single number)
     """
     dx, dy, length = bond_vectors(pos, bonds)
-    stretch = length - a # > 0 if the bond is stretched, < 0 if it is compressed
-    E = (k / 2) * np.sum(stretch**2)
-    return E
+
+    dl = length - a
+
+    #INFO: Total spring energy
+    V_int = (k / 2) * np.sum(dl**2)
+    return V_int
 
 
 def spring_force(pos, bonds, k=1.0, a=1.0):
     """
-    Spring force on each particle, F = -grad E.
+    Spring force on each particle, F_int = -grad V_int.
 
     Parameters
     ----------
@@ -62,27 +66,24 @@ def spring_force(pos, bonds, k=1.0, a=1.0):
 
     Returns
     ----------
-    F: Array of shape (N, 2) such that F[k] is the (x, y) spring force on particle k
+    F_int: Array of shape (N, 2) such that F_int[k] is the (x, y) spring force on particle k
     """
     dx, dy, length = bond_vectors(pos, bonds)
-    stretch = length - a
+    dl = length - a
 
-    # WARN: force of one bond. dE/dr_q = k (|d| - a) d/|d| with d = r_q - r_p, so the force on q is
-    # -k (|d| - a) d/|d| (pulls q towards p if stretched, pushes it away if compressed) and the force on p is the opposite.
-    fx = -k * stretch * dx / length # x force on q from bond l, shape (M,)
-    fy = -k * stretch * dy / length # y force on q from bond l, shape (M,)
-    # WARN: end
+    #INFO: Force exerted by bond l on particle p (the tail of the bond vector); this is where the direction of the bond vector matters
+    fx = + k * dl * dx / length # x force on p from bond l
+    fy = + k * dl * dy / length # y force on p from bond l
 
-    # WARN: summing over bonds. A particle belongs to up to 6 bonds, so its force is the sum over all of them.
-    # np.add.at(Fx, q, fx) does Fx[q[l]] += fx[l] for every l, adding repeated indices correctly (Fx[q] += fx would not).
+    #INFO: Adding the forces from all the bonds that contain a given particle
     N = pos.shape[0]
     Fx = np.zeros(N)
     Fy = np.zeros(N)
-    np.add.at(Fx, bonds[:, 1], fx) # force on q
-    np.add.at(Fy, bonds[:, 1], fy)
-    np.add.at(Fx, bonds[:, 0], -fx) # equal and opposite force on p
-    np.add.at(Fy, bonds[:, 0], -fy)
-    # WARN: end
+    np.add.at(Fx, bonds[:, 0], fx) # forces on p
+    np.add.at(Fy, bonds[:, 0], fy)
 
-    F = np.column_stack([Fx, Fy]) # F[k] = (Fx_k, Fy_k)
-    return F
+    np.add.at(Fx, bonds[:, 1], -fx) # equal and opposite forces on q
+    np.add.at(Fy, bonds[:, 1], -fy)
+
+    F_int = np.column_stack([Fx, Fy]) # F[k] = (Fx_k, Fy_k)
+    return F_int
