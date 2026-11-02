@@ -19,8 +19,8 @@ def test_commensurate_patch_sits_in_minima():
 
 
 def test_maximum_and_saddle_values():
-    top = np.array([[A_S / 2, A_S / (2 * np.sqrt(3))]]) # triangle centre
-    saddle = np.array([[A_S / 2, 0.0]]) # midway between two neighbouring minima
+    top = np.array([[A_S / 2, A_S / (2 * np.sqrt(3))]]) # triangle center
+    saddle = np.array([[A_S / 2, 0.0]]) # midway between two neighboring minima
     assert np.allclose(substrate_energy(top, V0, A_S), V0)
     assert np.allclose(substrate_energy(saddle, V0, A_S), 8 * V0 / 9)
     assert np.allclose(substrate_force(np.vstack([top, saddle]), V0, A_S), 0.0, atol=1e-10)

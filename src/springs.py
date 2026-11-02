@@ -1,4 +1,4 @@
-#INFO: Harmonic springs between neighbouring cell centres; the springs try to keep the bees' natural cell spacing a
+#INFO: Harmonic springs between neighboring cell centers; the springs try to keep the bees' natural cell spacing a
 
 
 import numpy as np

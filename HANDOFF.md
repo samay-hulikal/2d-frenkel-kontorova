@@ -6,7 +6,7 @@ Basic 2D FK sim in progress. 13 tests passing.
 - `src/springs.py` (committed but NOT yet user-reviewed; WARNs open): `bond_vectors`, `spring_energy` (total), `spring_force`.
 - `coordination` is a test-only helper in `tests/test_lattice.py`.
 ## Recent decisions
-- Particles = hexagonal-cell centres on a rectangular triangular-lattice patch, 6 NN harmonic springs — standard 2D FK geometry.
+- Particles = hexagonal-cell centers on a rectangular triangular-lattice patch, 6 NN harmonic springs — standard 2D FK geometry.
 - `pos[k]`, k = j*nx + i; `bonds[l] = [p, q]`; `mask[k]` — one flat index per particle, simpler for forces/masks.
 - Bonds built once on the undeformed lattice and never rewired — FK springs don't break.
 - Edges: simple on/off `fix_edges` flag (not per-side) — user unsure which, wants to switch easily.
@@ -17,7 +17,7 @@ Basic 2D FK sim in progress. 13 tests passing.
 - Springs: E = (k/2) Σ (|r_q − r_p| − a)², rest length a = bees' natural spacing.
 - Relaxation: L-BFGS (scipy) over mobile coordinates — user's choice; overdamped stepping later for driving.
 - Initial state: patch at substrate spacing a_s (all particles in minima, springs strained) — user's choice.
-- Voronoi tessellation of centres to recover cells (also gives geometric neighbour counts for defects).
+- Voronoi tessellation of centers to recover cells (also gives geometric neighbor counts for defects).
 - Docstring style (Parameters/Returns) recorded in CLAUDE.md Conventions.
 ## Next steps
 1. User reviews `src/springs.py` and its #WARNs.

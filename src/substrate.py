@@ -60,7 +60,7 @@ def substrate_force(pos, V0=1.0, a_s=1.0):
     ----------
     pos: Array such that pos[k] gives the (x, y) coordinates of particle k
     V0: Peak height of the potential
-    a_s: Spacing between neighbouring substrate minima
+    a_s: Spacing between neighboring substrate minima
 
     Returns
     ----------

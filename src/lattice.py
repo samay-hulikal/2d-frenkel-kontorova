@@ -32,7 +32,7 @@ def triangular_patch(nx, ny, a=1.0):
 
 def bonds_nn(pos, a=1.0, tol=1e-6):
     """
-    Creates the nearest-neighbour bonds; run ONLY on an UNDEFORMED lattice.
+    Creates the nearest-neighbor bonds; run ONLY on an UNDEFORMED lattice.
 
     Parameters
     ----------
