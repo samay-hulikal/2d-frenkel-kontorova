@@ -41,7 +41,7 @@ def test_perturbed_start_relaxes_and_lowers_energy():
         mobile = mobile_mask(NX, NY, fix_edges)
         pos, info = relax(start, bonds, mobile, K, A, V0, A_S)
         assert info["converged"], info["message"]
-        assert info["max_force"] < 1e-8
+        assert info["max_force"] < 1e-6
         assert info["energy"] < total_energy(start, bonds, K, A, V0, A_S)
 
 

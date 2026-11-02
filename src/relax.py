@@ -55,7 +55,7 @@ def total_force(pos, bonds, k=1.0, a=1.0, V0=1.0, a_s=1.0):
     return F
 
 
-def relax(pos0, bonds, mobile, k=1.0, a=1.0, V0=1.0, a_s=1.0, f_tol=1e-8, maxiter=10000):
+def relax(pos0, bonds, mobile, k=1.0, a=1.0, V0=1.0, a_s=1.0, f_tol=1e-6, maxiter=10000):
     """
     Moves the mobile particles to a local minimum of the total energy using L-BFGS; the pinned particles stay at pos0.
 
