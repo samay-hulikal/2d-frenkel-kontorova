@@ -4,7 +4,7 @@
 import numpy as np
 from scipy.spatial import Voronoi
 
-from src.springs import bond_vectors
+from src.basic_fk.springs import bond_vectors
 
 
 def voronoi_areas(pos):

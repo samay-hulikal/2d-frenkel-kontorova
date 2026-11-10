@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.lattice import bonds_nn, triangular_patch
-from src.stress import isotropic_stress, voronoi_areas
+from src.basic_fk.lattice import bonds_nn, triangular_patch
+from src.basic_fk.stress import isotropic_stress, voronoi_areas
 
 K, A = 2.0, 1.3 # non-unit values so wrong scalings show up
 NX, NY = 8, 7

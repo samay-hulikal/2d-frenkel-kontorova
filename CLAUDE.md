@@ -3,11 +3,12 @@
 Simulating a 2D Frenkel-Kontorova model and its variations for a hexagonal lattice.
 ## Layout
 src/ functions/classes · scripts/ main code · tests/ tests · sample-data/ inputs · outputs/ results
+- Two models: `basic_fk/` (triangular spring network) and `vertex_fk/` (vertex model) under src/, scripts/, tests/; shared code at the top of each. Plotting in `src/viz/`. Keep scripts thin.
 ## Commands
 - Run tests: .venv/bin/python -m pytest
-- Run main: .venv/bin/python -m scripts.main
+- Run basic FK: .venv/bin/python -m scripts.basic_fk.main
 ## Conventions
-- Docstrings: one-line summary, then `Parameters` and `Returns` sections (dashed underline), one `name: description` line per item (see `src/lattice.py`).
+- Docstrings: one-line summary, then `Parameters` and `Returns` sections (dashed underline), one `name: description` line per item (see `src/basic_fk/lattice.py`).
 ## Working rules
 - Work on main; small commits with clear messages.
 - Explain the plan before editing; verify by running tests.

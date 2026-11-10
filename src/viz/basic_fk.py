@@ -1,4 +1,4 @@
-#INFO: Figures of the bees' lattice on the substrate; drawing only, the physics lives in the other modules
+#INFO: Figures of the basic FK lattice on the substrate; drawing only, the physics lives in src/basic_fk/
 
 
 import numpy as np
@@ -7,89 +7,11 @@ from matplotlib.collections import LineCollection, PolyCollection
 from matplotlib.colors import TwoSlopeNorm
 from scipy.spatial import Voronoi
 
-from src.lattice import triangular_patch
+from src.viz.substrate import substrate_cells
+from src.window import in_window
 
 BLUE = "#1f5fbf" # substrate cells
 YELLOW = "#b8860b" # bees' (particle) Voronoi cells, dark yellow
-
-
-def central_window(pos0, fraction=0.25):
-    """
-    Rectangle in the middle of the starting patch, fixed in space, covering a given fraction of its area.
-
-    Parameters
-    ----------
-    pos0: Array such that pos0[k] gives the STARTING (x, y) coordinates of particle k
-    fraction: Fraction of the patch's area inside the window (0.25 means half the width and half the height)
-
-    Returns
-    ----------
-    window: Tuple (x_min, x_max, y_min, y_max)
-    """
-    x_lo, x_hi = pos0[:, 0].min(), pos0[:, 0].max()
-    y_lo, y_hi = pos0[:, 1].min(), pos0[:, 1].max()
-    cx, cy = (x_lo + x_hi) / 2, (y_lo + y_hi) / 2 # center of the patch
-    s = np.sqrt(fraction) # each side shrinks by sqrt(fraction) so the area shrinks by fraction
-    half_w = s * (x_hi - x_lo) / 2
-    half_h = s * (y_hi - y_lo) / 2
-    window = (cx - half_w, cx + half_w, cy - half_h, cy + half_h)
-    return window
-
-
-def in_window(pos, window, pad=0.0):
-    """
-    Which points lie inside the window, optionally enlarged by pad on every side.
-
-    Parameters
-    ----------
-    pos: Array such that pos[k] gives the (x, y) coordinates of point k
-    window: Tuple (x_min, x_max, y_min, y_max)
-    pad: Extra margin added on every side
-
-    Returns
-    ----------
-    inside: Boolean array, inside[k] is True if point k is inside the (padded) window
-    """
-    x_min, x_max, y_min, y_max = window
-    x = pos[:, 0]
-    y = pos[:, 1]
-    inside = (x > x_min - pad) & (x < x_max + pad) & (y > y_min - pad) & (y < y_max + pad)
-    return inside
-
-
-def substrate_cells(window, a_s=1.0):
-    """
-    Hexagonal substrate cells covering the window: centers at the energy minima, corners at the energy maxima.
-
-    Parameters
-    ----------
-    window: Tuple (x_min, x_max, y_min, y_max)
-    a_s: Spacing between neighboring substrate minima
-
-    Returns
-    ----------
-    hexagons: List of arrays of shape (7, 2), the corners of each hexagon in order (first corner repeated to close it)
-    """
-    x_min, x_max, y_min, y_max = window
-
-    #INFO: The minima are the triangular lattice with spacing a_s through the origin; triangular_patch builds exactly that lattice,
-    # so build a patch big enough to cover the window and shift it by whole lattice vectors (an even number of rows keeps the row offsets right)
-    i0 = int(np.floor(x_min / a_s)) - 2 # leftmost column needed
-    j0 = 2 * (int(np.floor(y_min / (np.sqrt(3) * a_s))) - 1) # lowest row needed, rounded down to an even row
-    nx = int(np.ceil((x_max - x_min) / a_s)) + 5
-    ny = int(np.ceil((y_max - y_min) / (np.sqrt(3) / 2 * a_s))) + 6
-    minima = triangular_patch(nx, ny, a_s) + np.array([i0 * a_s, j0 * (np.sqrt(3) / 2) * a_s])
-    minima = minima[in_window(minima, window, pad=a_s)]
-
-    # WARN: hexagon geometry. The maxima are at the triangle centers, a distance a_s / sqrt(3) from a minimum at angles 30, 90, ..., 330 degrees
-    # (e.g. (a_s/2, a_s/(2 sqrt(3))) from the origin); the cell walls join neighboring maxima and pass through the saddles.
-    angles = np.deg2rad(30 + 60 * np.arange(7)) # 7 angles so the last corner closes the hexagon
-    corner_x = (a_s / np.sqrt(3)) * np.cos(angles)
-    corner_y = (a_s / np.sqrt(3)) * np.sin(angles)
-    # WARN: end
-
-    hexagons = [np.column_stack([m[0] + corner_x, m[1] + corner_y]) for m in minima]
-    return hexagons
 
 
 def particle_cells(pos, window, pad=2.0):

@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.lattice import bonds_nn, triangular_patch
-from src.springs import spring_energy, spring_force
+from src.basic_fk.lattice import bonds_nn, triangular_patch
+from src.basic_fk.springs import spring_energy, spring_force
 
 K, A = 2.0, 1.3 # non-unit values so wrong scalings show up
 

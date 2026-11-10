@@ -8,11 +8,12 @@ import matplotlib
 matplotlib.use("Agg") # save figures without opening windows
 import matplotlib.pyplot as plt
 
-from src.lattice import bonds_nn, flipped_triangles, mobile_mask, triangles, triangular_patch
-from src.plotting import central_window, in_window, plot_state
+from src.basic_fk.lattice import bonds_nn, flipped_triangles, mobile_mask, triangles, triangular_patch
+from src.viz.basic_fk import plot_state
+from src.window import central_window, in_window
 from src.relax import relax_ramped
-from src.springs import bond_vectors, spring_energy
-from src.stress import isotropic_stress, voronoi_areas
+from src.basic_fk.springs import bond_vectors, spring_energy
+from src.basic_fk.stress import isotropic_stress, voronoi_areas
 from src.substrate import substrate_energy
 
 #INFO: Parameters; the bees' natural cell has side length 1, so their center-to-center spacing is a = sqrt(3)

@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.lattice import bonds_nn, edge_mask, flipped_triangles, mobile_mask, triangles, triangular_patch
+from src.basic_fk.lattice import bonds_nn, edge_mask, flipped_triangles, mobile_mask, triangles, triangular_patch
 
 
 def coordination(bonds, n):

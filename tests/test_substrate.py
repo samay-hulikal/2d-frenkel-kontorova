@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.lattice import triangular_patch
+from src.basic_fk.lattice import triangular_patch
 from src.substrate import reciprocal_vectors, substrate_energy, substrate_force
 
 V0, A_S = 2.0, 1.3 # non-unit values so wrong scalings show up
