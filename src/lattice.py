@@ -88,3 +88,57 @@ def mobile_mask(nx, ny, fix_edges=True):
 
     mobile = np.ones(nx * ny, dtype=bool) # all particles move
     return mobile
+
+
+def triangles(bonds):
+    """
+    The triangles of the spring network: every set of three particles that are all bonded to each other.
+
+    Parameters
+    ----------
+    bonds: Array such that bonds[l] = [p, q] means particles p and q are connected by bond number l
+
+    Returns
+    ----------
+    tri: Array of shape (T, 3), tri[t] = [p, q, r] are the three particles of triangle t (p < q < r)
+    """
+    N = bonds.max() + 1
+    neighbors = [set() for _ in range(N)] # neighbors[k] is the set of particles bonded to k
+    for p, q in bonds:
+        neighbors[p].add(q)
+        neighbors[q].add(p)
+
+    tri = []
+    for p, q in bonds: # p < q (bonds_nn lists every bond that way)
+        for r in neighbors[p] & neighbors[q]: # particles bonded to both p and q
+            if r > q:
+                tri.append([p, q, r]) # r > q > p, so each triangle is listed once
+    tri = np.array(tri, dtype=int)
+    return tri
+
+
+def flipped_triangles(pos0, pos, tri):
+    """
+    Counts the triangles that are turned inside out compared with the starting patch (the network has folded over itself).
+
+    Parameters
+    ----------
+    pos0: Array such that pos0[k] gives the STARTING (x, y) coordinates of particle k
+    pos: Array such that pos[k] gives the current (x, y) coordinates of particle k
+    tri: Array of shape (T, 3), the triangles from triangles(bonds)
+
+    Returns
+    ----------
+    n_flipped: Number of triangles whose orientation has reversed
+    """
+    # WARN: orientation test. The signed area (r_q - r_p) x (r_r - r_p) is positive if p -> q -> r goes counterclockwise and
+    # negative if clockwise; springs only fix lengths, so a triangle can pass through itself and come out mirrored, which flips the sign.
+    def signed_area(P):
+        ux = P[tri[:, 1], 0] - P[tri[:, 0], 0]
+        uy = P[tri[:, 1], 1] - P[tri[:, 0], 1]
+        vx = P[tri[:, 2], 0] - P[tri[:, 0], 0]
+        vy = P[tri[:, 2], 1] - P[tri[:, 0], 1]
+        return ux * vy - uy * vx
+    n_flipped = int(np.sum(np.sign(signed_area(pos)) != np.sign(signed_area(pos0))))
+    # WARN: end
+    return n_flipped

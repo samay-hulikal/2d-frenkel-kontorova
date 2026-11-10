@@ -116,3 +116,39 @@ def relax(pos0, bonds, mobile, k=1.0, a=1.0, V0=1.0, a_s=1.0, f_tol=1e-6, maxite
         "message": result.message,
     }
     return pos, info
+
+
+def relax_ramped(pos0, bonds, mobile, k=1.0, a=1.0, V0=1.0, a_s=1.0, a_start=1.0, n_stages=20, f_tol=1e-6, maxiter=10000):
+    """
+    Relaxes in stages, moving the springs' rest length from a_start to a; avoids the patch folding over itself when it starts strongly strained.
+
+    Parameters
+    ----------
+    pos0: Array such that pos0[k] gives the STARTING (x, y) coordinates of particle k
+    bonds: Array such that bonds[l] = [p, q] means particles p and q are connected by bond number l
+    mobile: Boolean array, mobile[k] is True if particle k is allowed to move
+    k: Spring constant
+    a: Final rest length of the springs (natural cell spacing)
+    V0: Peak height of the substrate potential
+    a_s: Spacing between neighboring substrate minima
+    a_start: Rest length used in the first stage (normally the spacing of the starting patch, so the springs start relaxed)
+    n_stages: Number of stages; each one is a full relax
+    f_tol: Stop each stage once every mobile particle has |F_k| < f_tol
+    maxiter: Maximum number of L-BFGS iterations per stage
+
+    Returns
+    ----------
+    pos: Array of shape (N, 2), the relaxed positions at rest length a
+    info: Dictionary as from relax() for the last stage, but n_iter is the total over all stages
+    """
+    # WARN: ramping the rest length. Stage n relaxes with rest length a_n, a_n going in equal steps from a_start (exclusive) to a (inclusive),
+    # each stage starting from the previous stage's result. Only the last stage uses the real model (rest length a); the earlier stages
+    # only choose the path, so the patch shrinks or grows gently instead of snapping. The result is still a local minimum of the real model.
+    pos = pos0
+    n_iter = 0
+    for a_n in np.linspace(a_start, a, n_stages + 1)[1:]:
+        pos, info = relax(pos, bonds, mobile, k, a_n, V0, a_s, f_tol, maxiter)
+        n_iter += info["n_iter"]
+    # WARN: end
+    info["n_iter"] = n_iter
+    return pos, info

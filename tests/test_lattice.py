@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.lattice import bonds_nn, edge_mask, mobile_mask, triangular_patch
+from src.lattice import bonds_nn, edge_mask, flipped_triangles, mobile_mask, triangles, triangular_patch
 
 
 def coordination(bonds, n):
@@ -49,3 +49,22 @@ def test_mobile_mask_fixed_and_free_edges():
     assert np.array_equal(mobile_mask(nx, ny, fix_edges=True), ~edge_mask(nx, ny))
     free = mobile_mask(nx, ny, fix_edges=False)
     assert free.shape == (nx * ny,) and free.all()
+
+
+def test_triangle_count_and_no_flips_when_undeformed():
+    nx, ny = 7, 6
+    pos = triangular_patch(nx, ny, a=1.3)
+    tri = triangles(bonds_nn(pos, a=1.3))
+    assert tri.shape == (2 * (nx - 1) * (ny - 1), 3) # each strip between two rows holds 2(nx - 1) triangles
+    assert flipped_triangles(pos, 1.7 * pos, tri) == 0 # uniform stretch keeps every orientation
+
+
+def test_mirroring_a_particle_flips_its_triangles():
+    nx, ny = 7, 6
+    pos0 = triangular_patch(nx, ny, a=1.0)
+    tri = triangles(bonds_nn(pos0, a=1.0))
+    pos = pos0.copy()
+    k = 2 * nx + 3 # interior particle, in 6 triangles
+    pos[k, 1] -= np.sqrt(3) # push it down past its lower neighbors (a mirror image through that row)
+    assert flipped_triangles(pos0, pos, tri) > 0
+    assert flipped_triangles(pos0, pos, tri) <= 6

@@ -1,5 +1,5 @@
 #INFO: Second sweep: same V0 and s values as scripts/sweep.py, but every particle starts in a substrate minimum (spacing a_s);
-# results in outputs/sweep_2/. The window is the central quarter of the starting patch, so it always holds 30 x 30 particle cells
+# results in outputs/sweep_2/. The window is the central quarter of the relaxed patch, so it holds about 30 x 30 particle cells
 
 
 from pathlib import Path

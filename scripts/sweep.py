@@ -22,15 +22,16 @@ S_VALUES = [0.5, 0.75, 1, 1.5, 2, 3] # substrate cell area / natural bee cell ar
 FIX_EDGES = False
 START_AT_MINIMA = False # False = springs relaxed at the start (spacing a); True = every particle in a substrate minimum (spacing a_s)
 F_TOL = 1e-6
+N_STAGES = 20 # rest length ramped from the start spacing to A in this many relax stages (stops the patch folding over itself)
 WINDOW_FRACTION = 0.25
 
 OUTPUT_DIR = Path("outputs") / "sweep"
 
-COLUMNS = ["V0", "s", "a_s", "converged", "n_iter", "max_force", "E_before", "E_after", "E_springs_after", "E_substrate_after",
+COLUMNS = ["V0", "s", "a_s", "converged", "n_iter", "max_force", "n_flipped", "n_window", "E_before", "E_after", "E_springs_after", "E_substrate_after",
            "u_mean_window", "sigma_min", "sigma_mean", "sigma_max", "figure"]
 
 
-def run_sweep(output_dir, start_at_minima):
+def run_sweep(output_dir, start_at_minima, V0_values=V0_VALUES, s_values=S_VALUES):
     """
     Runs every (V0, s) pair, saves one figure per run and a summary table.
 
@@ -38,6 +39,8 @@ def run_sweep(output_dir, start_at_minima):
     ----------
     output_dir: Folder for the figures and summary.csv
     start_at_minima: If True, the patch starts at spacing a_s (every particle in a minimum); if False, at spacing a (springs relaxed)
+    V0_values: Substrate peak heights to run
+    s_values: Area ratios (substrate cell / natural bee cell) to run
 
     Returns
     ----------
@@ -46,26 +49,27 @@ def run_sweep(output_dir, start_at_minima):
     output_dir.mkdir(parents=True, exist_ok=True)
     rows = []
     start = time.time()
-    print(f"Sweep: {len(V0_VALUES)} V0 values x {len(S_VALUES)} s values = {len(V0_VALUES) * len(S_VALUES)} runs, A={A:.4f}, K={K}, "
+    print(f"Sweep: {len(V0_values)} V0 values x {len(s_values)} s values = {len(V0_values) * len(s_values)} runs, A={A:.4f}, K={K}, "
           f"FIX_EDGES={FIX_EDGES}, start {'in the substrate minima (spacing a_s)' if start_at_minima else 'with springs relaxed (spacing a)'}")
 
-    for V0 in V0_VALUES:
-        for s in S_VALUES:
+    for V0 in V0_values:
+        for s in s_values:
             a_s = A * np.sqrt(s) # cell areas scale as spacing^2, so a_s / a = sqrt(s)
             start_spacing = a_s if start_at_minima else A
-            pos, sigma_iso, window, r = run(NX, NY, A, a_s, K, V0, FIX_EDGES, start_spacing, F_TOL, WINDOW_FRACTION)
+            pos, sigma_iso, window, r = run(NX, NY, A, a_s, K, V0, FIX_EDGES, start_spacing, F_TOL, WINDOW_FRACTION, N_STAGES)
 
             title = (f"{NX}×{NY} patch, central window · s = {s:g} (a_s/a = {a_s / A:.3g}), V0 = {V0:g}, k = {K:g}, "
                      f"edges {'fixed' if FIX_EDGES else 'free'}, start spacing {'a_s' if start_at_minima else 'a'}")
             fig = plot_state(pos, sigma_iso, window, a_s, title)
-            name = f"V0_{V0:.3f}_s_{s:g}.png"
+            name = f"V0_{V0:g}_s_{s:g}.png" # :g keeps small values like 0.0005 distinct
             fig.savefig(output_dir / name, dpi=110)
             plt.close(fig)
 
             row = {"V0": V0, "s": s, "a_s": a_s, "figure": name}
             row.update({c: r[c] for c in COLUMNS if c in r})
             rows.append(row)
-            print(f"V0={V0:.3f} s={s:<4g} converged={r['converged']!s:5} iters={r['n_iter']:<5} max|F|={r['max_force']:.1e} "
+            print(f"V0={V0:<8g} s={s:<4g} converged={r['converged']!s:5} iters={r['n_iter']:<5} max|F|={r['max_force']:.1e} "
+                  f"flipped={r['n_flipped']} in_window={r['n_window']} "
                   f"E={r['E_after']:.2f} sigma in window [{r['sigma_min']:.3f}, {r['sigma_max']:.3f}] mean={r['sigma_mean']:.3f}")
 
     with open(output_dir / "summary.csv", "w", newline="") as f:
@@ -74,7 +78,9 @@ def run_sweep(output_dir, start_at_minima):
         writer.writerows(rows)
 
     n_bad = sum(not row["converged"] for row in rows)
-    print(f"Done in {time.time() - start:.0f}s; {n_bad} run(s) not converged; figures and summary.csv in {output_dir}")
+    n_folded = sum(row["n_flipped"] > 0 for row in rows)
+    print(f"Done in {time.time() - start:.0f}s; {n_bad} run(s) not converged, {n_folded} run(s) with flipped triangles; "
+          f"figures and summary.csv in {output_dir}")
 
 
 if __name__ == "__main__":

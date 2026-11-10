@@ -8,9 +8,9 @@ import matplotlib
 matplotlib.use("Agg") # save figures without opening windows
 import matplotlib.pyplot as plt
 
-from src.lattice import bonds_nn, mobile_mask, triangular_patch
+from src.lattice import bonds_nn, flipped_triangles, mobile_mask, triangles, triangular_patch
 from src.plotting import central_window, in_window, plot_state
-from src.relax import relax
+from src.relax import relax_ramped
 from src.springs import bond_vectors, spring_energy
 from src.stress import isotropic_stress, voronoi_areas
 from src.substrate import substrate_energy
@@ -25,14 +25,15 @@ V0 = 0.1 # substrate peak height; placeholder until the values are chosen from t
 FIX_EDGES = False # True pins the outer ring
 START_SPACING = A # spacing of the starting patch; A = springs relaxed, A_S = every particle in a substrate minimum
 F_TOL = 1e-6 # stop once every mobile particle has |F_k| < F_TOL
-WINDOW_FRACTION = 0.25 # fraction of the patch's area shown in the figure
+N_STAGES = 20 # rest length ramped from START_SPACING to A in this many relax stages (stops the patch folding over itself)
+WINDOW_FRACTION = 0.25 # fraction of the relaxed patch's area shown in the figure
 
 OUTPUT_DIR = Path("outputs")
 
 
-def run(nx, ny, a, a_s, k, V0, fix_edges, start_spacing, f_tol=1e-6, window_fraction=0.25):
+def run(nx, ny, a, a_s, k, V0, fix_edges, start_spacing, f_tol=1e-6, window_fraction=0.25, n_stages=20):
     """
-    Builds the patch, relaxes it and computes the stress and a summary.
+    Builds the patch, relaxes it (rest length ramped from start_spacing to a) and computes the stress and a summary.
 
     Parameters
     ----------
@@ -45,23 +46,25 @@ def run(nx, ny, a, a_s, k, V0, fix_edges, start_spacing, f_tol=1e-6, window_frac
     fix_edges: If True, the outer ring is pinned
     start_spacing: Spacing of the starting patch
     f_tol: Stop once every mobile particle has |F_k| < f_tol
-    window_fraction: Fraction of the patch's area inside the central window
+    window_fraction: Fraction of the relaxed patch's area inside the central window
+    n_stages: Number of relax stages for the rest-length ramp
 
     Returns
     ----------
     pos: Array of shape (N, 2), the relaxed positions
     sigma_iso: Array of shape (N,), the isotropic stress of each particle
     window: Tuple (x_min, x_max, y_min, y_max), the central window
-    summary: Dictionary of numbers describing the run (energies, convergence, displacement, bond lengths, stress in window)
+    summary: Dictionary of numbers describing the run (energies, convergence, folding, displacement, bond lengths, stress in window)
     """
     pos0 = triangular_patch(nx, ny, start_spacing)
     bonds = bonds_nn(pos0, start_spacing) # bonds from the undeformed starting patch, never rewired
     mobile = mobile_mask(nx, ny, fix_edges)
 
-    pos, info = relax(pos0, bonds, mobile, k, a, V0, a_s, f_tol)
+    pos, info = relax_ramped(pos0, bonds, mobile, k, a, V0, a_s, start_spacing, n_stages, f_tol)
+    n_flipped = flipped_triangles(pos0, pos, triangles(bonds)) # should be 0; > 0 means the network folded over itself
 
     sigma_iso = isotropic_stress(pos, bonds, voronoi_areas(pos), k, a)
-    window = central_window(pos0, window_fraction)
+    window = central_window(pos, window_fraction) # from the RELAXED patch, so it holds about the same particles whatever the patch did
     inside = in_window(pos, window)
 
     u = np.sqrt(np.sum((pos - pos0)**2, axis=1)) # how far each particle moved
@@ -72,6 +75,7 @@ def run(nx, ny, a, a_s, k, V0, fix_edges, start_spacing, f_tol=1e-6, window_frac
     summary = {
         "n_particles": pos.shape[0], "n_mobile": int(mobile.sum()), "n_bonds": bonds.shape[0], "n_window": int(inside.sum()),
         "converged": info["converged"], "n_iter": info["n_iter"], "max_force": info["max_force"], "message": info["message"],
+        "n_flipped": n_flipped,
         "E_before": E0_int + E0_sub, "E_springs_before": E0_int, "E_substrate_before": E0_sub,
         "E_after": E_int + E_sub, "E_springs_after": E_int, "E_substrate_after": E_sub,
         "u_max": u.max(), "u_mean": u.mean(), "u_mean_window": u[inside].mean(),
@@ -93,13 +97,14 @@ def main():
     ----------
     (none; prints a summary and writes a PNG to outputs/)
     """
-    pos, sigma_iso, window, r = run(NX, NY, A, A_S, K, V0, FIX_EDGES, START_SPACING, F_TOL, WINDOW_FRACTION)
+    pos, sigma_iso, window, r = run(NX, NY, A, A_S, K, V0, FIX_EDGES, START_SPACING, F_TOL, WINDOW_FRACTION, N_STAGES)
 
     #INFO: Short summary
     print(f"Parameters: NX={NX} NY={NY} A={A:.4f} S={S} A_S={A_S:.4f} (A/A_S={A / A_S:.3f}) K={K} V0={V0} (V0/(K A^2)={V0 / (K * A**2):.3f})")
     print(f"            FIX_EDGES={FIX_EDGES} START_SPACING={START_SPACING:.4f} F_TOL={F_TOL}")
     print(f"Particles: {r['n_particles']} ({r['n_mobile']} mobile), bonds: {r['n_bonds']}, in window: {r['n_window']}")
-    print(f"Relax: converged={r['converged']} iterations={r['n_iter']} max|F|={r['max_force']:.2e} ({r['message']})")
+    print(f"Relax: converged={r['converged']} iterations={r['n_iter']} (over {N_STAGES} stages) max|F|={r['max_force']:.2e} ({r['message']})")
+    print(f"Flipped triangles (folding): {r['n_flipped']}")
     print(f"Energy before: total={r['E_before']:.4f} springs={r['E_springs_before']:.4f} substrate={r['E_substrate_before']:.4f}")
     print(f"Energy after : total={r['E_after']:.4f} springs={r['E_springs_after']:.4f} substrate={r['E_substrate_after']:.4f}")
     print(f"Displacement |u|: max={r['u_max']:.4f} mean={r['u_mean']:.4f} (window mean={r['u_mean_window']:.4f})")
