@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 from src.basic_fk.simulate import run
 from src.viz.basic_fk import plot_state
+from src.viz.stack3d import plot_stack
 
 #INFO: Parameters; the bees' natural cell has side length 1, so their center-to-center spacing is a = sqrt(3)
 NX, NY = 60, 60 # patch size; the central window (0.25x the area) holds about 30 x 30 bee cells
@@ -27,6 +28,7 @@ F_TOL = 1e-6 # stop once every mobile particle has |F_k| < F_TOL
 WINDOW_FRACTION = 0.25 # fraction of the final patch's area in the central window
 KICK_SIZE = 1e-3 * A_S # random starting displacement of each mobile particle; the commensurate start is an exact equilibrium without it
 SEED = 0 # seed for the kick directions
+N_LAYERS = 8 # layers in the 3D stack (snapshots evenly spaced in time)
 
 OUTPUT_DIR = Path("outputs") / "basic_fk"
 
@@ -41,7 +43,7 @@ def main():
 
     Returns
     ----------
-    (none; prints a summary and writes a PNG to outputs/basic_fk/)
+    (none; prints a summary and writes a PNG and an interactive HTML to outputs/basic_fk/)
     """
     result = run(NX, NY, A, A_S, K, V0, FIX_EDGES, START_SPACING, GAMMA, DT_SNAP, T_MAX, F_TOL, WINDOW_FRACTION, KICK_SIZE, SEED)
     r = result["summary"]
@@ -70,6 +72,12 @@ def main():
     fig.savefig(OUTPUT_DIR / name, dpi=110)
     plt.close(fig)
     print(f"Figure saved to {OUTPUT_DIR / name}")
+
+    #INFO: Interactive 3D stack (open the HTML in a browser)
+    fig3d = plot_stack(result["times"], result["snapshots"], result["left"], result["window"], N_LAYERS, title)
+    name3d = name.replace(".png", "_stack.html")
+    fig3d.write_html(OUTPUT_DIR / name3d, include_plotlyjs="cdn")
+    print(f"3D stack saved to {OUTPUT_DIR / name3d}")
 
 
 if __name__ == "__main__":
